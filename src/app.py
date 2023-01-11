@@ -6,7 +6,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Favorites, People, Planet
+from models import db, User, Favorites, People, Planet, Vehicle
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -42,14 +42,13 @@ def handle_hello():
     users = User.query.all()
     response_user = [user.serialize() for user in users]
     response_body = {
-        "msg": "Users list"
+        "msg": "User list"
     }
 
     return jsonify(response_user), 200
 
 @app.route('/user/<int:user_id>', methods=['GET'])
 def select_user(user_id):
-    # user = list(filter(lambda element: element['id'] == user_id, users))
     user = User.query.get(user_id)
     user = user.serialize()
     return jsonify(user), 200
@@ -76,7 +75,7 @@ def create_people():
     db.session.add(person)
     db.session.commit()
     response_body = {
-        "msg": "Todo Ok! "
+        "msg": "The force is strong on this one! "
     }
     return jsonify(response_body), 200
 
@@ -87,7 +86,7 @@ def delete_person(people_id):
     db.session.commit()
 
     response_body = {
-        "msg": "Borrado! "
+        "msg": "The force was week on this one! "
     }
     return jsonify(response_body), 200
 
@@ -95,9 +94,6 @@ def delete_person(people_id):
 @app.route('/planet', methods=['GET'])
 def handle_planet():
     planets = Planet.query.all()
-    # result = []
-    # for planet in planets:
-    #     result.append(planet.serialize())
     result = [planet.serialize() for planet in planets]
     return jsonify(result), 200
 
@@ -116,7 +112,7 @@ def create_planet():
     db.session.add(planet)
     db.session.commit()
     response_body = {
-        "msg": "Todo Ok! "
+        "msg": "Planet survives! "
     }
     return jsonify(response_body), 200
 
@@ -127,14 +123,50 @@ def delete_planet(planet_id):
     db.session.commit()
     
     response_body = {
-        "msg": "Borrado! "
+        "msg": "Planet destroyed by Death Star! "
     }
     return jsonify(response_body), 200    
+
+# Get, Post and Delete Vehicles
+@app.route('/vehicle', methods=['GET'])
+def handle_vehicle():
+    vehicles = Vehicle.query.all()
+    result = [vehicle.serialize() for vehicle in vehicles]
+    return jsonify(result), 200
+
+@app.route('/vehicle/<int:vehicle_id>', methods=['GET'])
+def select_vehicle(vehicle_id):
+    vehicle = Vehicle.query.get(vehicle_id)
+    vehicle = vehicle.serialize()
+    return jsonify(vehicle), 200
+
+@app.route('/vehicle', methods=['POST'])
+def create_vehicle():  
+    data = request.data
+    data = json.loads(data)
+
+    vehicle = Vehicle(name = data['name'], model = data['model'])
+    db.session.add(vehicle)
+    db.session.commit()
+    response_body = {
+        "msg": "Vehicle running"
+    }
+    return jsonify(response_body), 200
+
+@app.route('/vehicle/<int:vehicle_id>', methods=['DELETE'])
+def delete_vehicle(vehicle_id): 
+    vehicle_delete = Vehicle.query.get(vehicle_id)
+    db.session.delete(vehicle_delete)
+    db.session.commit()
+    
+    response_body = {
+        "msg": "Vehicle deleted! "
+    }
+    return jsonify(response_body), 200   
 
 # Get, post and delete Favorites
 @app.route('/favorite', methods=['GET'])
 def handle_fav():
-    # favorites = Favorites.query.filter_by(id == user_id)
     favorites = Favorites.query.all()
     fav = [favorite.serialize() for favorite in favorites]
 
@@ -152,15 +184,15 @@ def new_fav_planet():
     data = request.data
     data = json.loads(data)
 
-    fav = Favorites(user_id = data['user_id'], planet_id = data['planet_id'])
+    fav = Favorites(user_id = data['user_id'], planet_id = data['planet_id'], vehicle_id = data('vehicle_id'))
     db.session.add(fav)
     db.session.commit()
     response_body = {
-        "msg": "Todo Ok! "
+        "msg": "Love these guys! "
     }
     return jsonify(response_body), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 3002))
+    PORT = int(os.environ.get('PORT', 3010))
     app.run(host='0.0.0.0', port=PORT, debug=False)
